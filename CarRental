@@ -1,0 +1,200 @@
+CREATE DATABASE CarRental;
+
+USE CarRental;
+
+CREATE TABLE Vehicle(
+VehicleID INT PRIMARY KEY,
+Make Varchar(100),
+Model varchar(100),
+Year_ year,
+DailyRate Decimal(20,2),
+Status_Availability enum('1','0'),
+PassengerCapacity int,
+Engine varchar(100)
+);
+
+CREATE TABLE Customers(
+CustomerID int PRIMARY KEY,
+FirstName varchar(100),
+LastName varchar(100),
+Email varchar(100),
+Phone varchar(100)
+);
+
+CREATE TABLE Lease(
+LeaseID int PRIMARY KEY,
+VehicleID Int,
+CustomerID int,
+StartDate Date,
+EndDate Date,
+Type enum('Daily','Monthly'),
+FOREIGN KEY (vehicleId) REFERENCES Vehicle(VehicleID),
+FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+);
+
+CREATE TABLE Payment(
+PaymentID int PRIMARY KEY,
+LeaseID int,
+Paymentdate date,
+Amount Decimal(20,2),
+FOREIGN KEY (LeaseID) REFERENCES Lease(LeaseID)
+);
+
+INSERT INTO vehicle VALUES
+(1,'Toyota','Camry','2022',50.00,'1',4,1450),
+(2,'Honda','Civic','2023',45.00,'1',7,1500),
+(3,'Ford','Focus','2022',48.00,'0',4,1400),
+(4,'Nissan','Altima','2023',52.00,'1',7,1200),
+(5,'Chevrolet','Malibu','2022',47.00,'1',4,1800),
+(6,'Hyundai','Sonata','2023',49.00,'0',7,1400),
+(7,'BMW','3Series','2023',60.00,'1',7,2499),
+(8,'Mercedes','C Class','2022',58.00,'1',8,2599),
+(9,'Audi','A4','2022',55.00,'0',4,2500),
+(10,'Lexus','ES','2023',54.00,'1', 4, 2500
+);
+
+INSERT INTO Customers VALUES
+(1, 'John', 'Doe', 'johndoe@example.com', '555-555-5555'),
+(2, 'Jane', 'Smith', 'janesmith@example.com', '555-123-4567'),
+(3, 'Robert', 'Johnson', 'robert@example.com', '555-789-1234'),
+(4, 'Sarah', 'Brown', 'sarah@example.com', '555-456-7890'),
+(5, 'David', 'Lee', 'david@example.com', '555-987-6543'),
+(6, 'Laura', 'Hall', 'laura@example.com', '555-234-5678'),
+(7, 'Michael', 'Davis', 'michael@example.com', '555-876-5432'),
+(8, 'Emma','Wilson', 'emma@example.com', '555-432-1098'),
+(9, 'William', 'Taylor', 'william@example.com', '555-321-6547'),
+(10, 'Olivia', 'Adams', 'olivia@example.com', '555-765-4321'
+);
+
+INSERT INTO Lease VALUES
+(1, 1, 1, '2023-01-01', '2023-01-05', 'Daily'),
+(2, 2, 2, '2023-02-15', '2023-02-28', 'Monthly'),
+(3, 3, 3, '2023-03-10', '2023-03-15', 'Daily'),
+(4, 4, 4, '2023-04-20', '2023-04-30', 'Monthly'),
+(5, 5, 5, '2023-05-05', '2023-05-10', 'Daily'),
+(6, 4, 3, '2023-06-15', '2023-06-30', 'Monthly'),
+(7, 7, 7, '2023-07-01', '2023-07-10', 'Daily'),
+(8, 8, 8, '2023-08-12', '2023-08-15', 'Monthly'),
+(9, 3, 3, '2023-09-07', '2023-09-10', 'Daily'),
+(10, 10, 10, '2023-10-10', '2023-10-31', 'Monthly'
+);
+
+INSERT INTO Payment VALUES
+(1, 1, '2023-01-03', 200.00),
+(2, 2, '2023-02-20', 1000.00),
+(3, 3, '2023-03-12', 75.00),
+(4, 4, '2023-04-25', 900.00 ),
+(5, 5, '2023-05-07', 60.00 ),
+(6, 6, '2023-06-18', 1200.00),
+(7, 7, '2023-07-03', 40.00 ),
+(8, 8, '2023-08-14', 1100.00), 
+(9, 9, '2023-09-09', 80.00 ),
+(10, 10, '2023-10-25', 1500.00
+);
+
+UPDATE vehicle
+SET DailyRate = 68.00
+WHERE Make = 'Mercedes';
+
+SELECT * FROM Vehicle;
+
+DELETE FROM Payment
+WHERE LeaseID IN (SELECT LeaseID FROM Lease
+				  WHERE CustomerID = 4
+);
+DELETE FROM Lease
+WHERE CustomerID = 4;
+DELETE FROM Customers
+WHERE CustomerID = 4;
+
+ALTER TABLE Payment
+CHANGE PaymentDate TransactionDate varchar(100);
+
+DESC Payment;
+
+SELECT * FROM Customers
+WHERE email IN ('david@example.com');
+
+SELECT * FROM Lease AS l
+INNER JOIN Customers AS c ON c.CustomerID = l.CustomerID
+WHERE c.CustomerID IN (3);
+
+SELECT p.PaymentID,p.TransactionDate,p.Amount
+FROM Payment AS p
+INNER JOIN lease AS l ON p.leaseID = l.LeaseID
+INNER JOIN Customers AS c ON l.CustomerID = c.CustomerID
+WHERE c.Phone IN ('555-765-4321');
+
+SELECT AVG(DailyRate) AS Avg_Rate
+FROM vehicle;
+
+SELECT MAX(dailyRate) AS Max_Rate
+FROM Vehicle;
+
+SELECT v.VehicleID,CONCAT(v.Make,' ' ,v.Model) AS CAR
+FROM Vehicle AS v
+INNER JOIN Lease AS l ON l.VehicleID = v.VehicleID
+INNER JOIN Customers AS c ON c.CustomerID = l.CustomerID
+WHERE c.customerID = (5);
+
+SELECT * FROM Lease
+ORDER BY StartDate DESC
+LIMIT 1;
+
+SELECT * FROM Payment
+WHERE Transactiondate BETWEEN ('2023-01-01') AND ('2023-12-12');
+
+SELECT * FROM  Customers AS c
+INNER JOIN lease AS l ON l.CustomerID = c.CustomerID
+INNER JOIN Payment AS p ON p.leaseID = l.LeaseID
+WHERE PaymentID IS NULL;
+
+SELECT v.VehicleID,CONCAT(v.Make,' ',v.Model) AS CarName,v.Engine,SUM(p.Amount) AS total
+FROM Vehicle AS v
+INNER JOIN Lease AS l ON l.VehicleID = v.VehicleID
+INNER JOIN Payment AS p ON p.LeaseID = l.LeaseID
+GROUP BY v.VehicleID;
+
+SELECT C.CustomerID,CONCAT(c.FirstName,' ',c.LastName) AS CustomerName,SUM(p.Amount) AS Total
+FROM Customers AS c
+INNER JOIN Lease AS l ON l.CustomerID = c.CustomerID
+INNER JOIN Payment AS p ON p.LeaseID = l.LeaseID
+GROUP BY CustomerID;
+
+SELECT v.* FROM Vehicle AS v
+INNER JOIN Lease AS l ON l.vehicleID = v.VehicleID
+WHERE L.LeaseID IN (1);
+
+SELECT l.leaseID,CONCAT(v.Make,' ' ,v.Model) AS CAR,CONCAT(c.FirstName,' ',c.LastName) AS CustomerName,c.email,c.phone,l.startDate,l.endDate,l.type
+FROM Lease AS l
+INNER JOIN Vehicle AS v ON l.vehicleID = v.vehicleID
+INNER JOIN Customers AS c ON l.customerID = c.customerID
+INNER JOIN Payment AS p ON p.LeaseID = l.LeaseID
+WHERE l.endDate >= p.TransactionDate
+ORDER BY l.startDate;
+
+SELECT CONCAT(c.FirstName,' ',c.LastName) AS CustomerName,P.Amount
+FROM Customers AS c
+INNER JOIN Lease AS l ON l.CustomerID = c.CustomerID
+INNER JOIN Payment AS p ON p.LeaseID = l.LeaseID
+ORDER BY p.Amount Desc
+LIMIT 1;
+
+SELECT CONCAT(v.Make,' ' ,v.Model) AS CAR,l.LeaseID,l.StartDate,l.Enddate,l.Type
+FROM Vehicle AS v
+INNER JOIN lease AS l ON l.VehicleID = v.VehicleID;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
